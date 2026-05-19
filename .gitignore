@@ -13,6 +13,10 @@ out/
 # Prisma generated client (se regenera con prisma generate)
 prisma/generated/
 
+# Base de datos local SQLite — contiene datos de desarrollo
+prisma/*.db
+prisma/*.db-journal
+
 # TypeScript build info
 tsconfig.tsbuildinfo
 *.tsbuildinfo
