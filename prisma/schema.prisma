@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  passwordHash           String
+  name                   String
+  businessName           String
+  businessType           String    @default("Negocio local")
+  googlePlaceId          String?
+  googleReviewUrl        String?
+  aiTone                 String    @default("profesional y amigable")
+  notificationEmail      String?
+  whatsappNumber         String?
+  whatsappEnabled        Boolean   @default(false)
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  subscriptionStatus     String    @default("trialing") // trialing | active | past_due | canceled
+  trialEndsAt            DateTime?
+  currentPeriodEnd       DateTime?
+  onboardingCompleted    Boolean   @default(false)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  reviews        Review[]
+  reviewRequests ReviewRequest[]
+  surveys        Survey[]
+  sessions       Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id             String    @id @default(cuid())
+  userId         String
+  googleReviewId String?
+  authorName     String
+  authorInitials String
+  rating         Int
+  text           String
+  publishedAt    DateTime
+  isReplied      Boolean   @default(false)
+  replyText      String?
+  repliedAt      DateTime?
+  isNew          Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ReviewRequest {
+  id            String   @id @default(cuid())
+  userId        String
+  clientName    String
+  clientEmail   String?
+  clientPhone   String?
+  channel       String   // email | whatsapp
+  status        String   @default("sent") // sent | opened | completed | failed
+  customMessage String?
+  sentAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Survey {
+  id           String    @id @default(cuid())
+  userId       String
+  token        String    @unique @default(cuid())
+  clientName   String
+  clientEmail  String?
+  clientPhone  String?
+  channel      String    // email | whatsapp
+  status       String    @default("pending") // pending | positive | negative
+  feedbackText String?
+  respondedAt  DateTime?
+  sentAt       DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
